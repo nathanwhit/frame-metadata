@@ -214,8 +214,7 @@ pub struct StorageEntryMetadata<T: Form = MetaForm> {
 	pub ty: StorageEntryType<T>,
 	/// Default value (SCALE encoded).
 	pub default: Vec<u8>,
-	/// Storage entry documentation.
-	pub docs: Vec<T::String>,
+	docs: Vec<T::String>,
 }
 
 impl IntoPortable for StorageEntryMetadata {
@@ -232,11 +231,46 @@ impl IntoPortable for StorageEntryMetadata {
 	}
 }
 
-/// A storage entry modifier indicates how a storage entry is returned when fetched and what the value will be if the key is not present.
-/// Specifically this refers to the "return type" when fetching a storage entry, and what the value will be if the key is not present.
-///
-/// `Optional` means you should expect an `Option<T>`, with `None` returned if the key is not present.
-/// `Default` means you should expect a `T` with the default value of default if the key is not present.
+impl StorageEntryMetadata<MetaForm> {
+	/// Create a new [`StorageEntryMetadata`].
+	pub fn new(
+		name: &'static str,
+		modifier: StorageEntryModifier,
+		ty: StorageEntryType<MetaForm>,
+		default: Vec<u8>,
+	) -> Self {
+		StorageEntryMetadata {
+			name,
+			modifier,
+			ty,
+			default,
+			docs: Vec::new(),
+		}
+	}
+
+	#[cfg(feature = "docs")]
+	/// Set the documentation.
+	pub fn with_docs(mut self, docs: &[&'static str]) -> Self {
+		self.docs = docs.to_vec();
+		self
+	}
+
+	#[cfg(not(feature = "docs"))]
+	/// Docs feature is not enabled so this is a no-op.
+	#[inline]
+	pub fn with_docs(mut self, docs: &[&'static str]) -> Self {
+		self
+	}
+}
+
+impl StorageEntryMetadata<PortableForm> {
+	/// Get the documentation.
+	pub fn docs(&self) -> &[String] {
+		&self.docs
+	}
+}
+
+/// A storage entry modifier.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub enum StorageEntryModifier {
@@ -372,8 +406,7 @@ pub struct PalletConstantMetadata<T: Form = MetaForm> {
 	pub ty: T::Type,
 	/// Value stored in the constant (SCALE encoded).
 	pub value: Vec<u8>,
-	/// Documentation of the constant.
-	pub docs: Vec<T::String>,
+	docs: Vec<T::String>,
 }
 
 impl IntoPortable for PalletConstantMetadata {
@@ -386,6 +419,38 @@ impl IntoPortable for PalletConstantMetadata {
 			value: self.value,
 			docs: registry.map_into_portable(self.docs),
 		}
+	}
+}
+
+impl PalletConstantMetadata {
+	pub fn new(name: &'static str, ty: MetaType, value: Vec<u8>) -> Self {
+		Self {
+			name,
+			ty,
+			value,
+			docs: Vec::new(),
+		}
+	}
+
+	#[cfg(feature = "docs")]
+	/// Set the documentation.
+	pub fn with_docs(mut self, docs: &[&'static str]) -> Self {
+		self.docs = docs.to_vec();
+		self
+	}
+
+	#[cfg(not(feature = "docs"))]
+	/// Docs feature is not enabled so this is a no-op.
+	#[inline]
+	pub fn with_docs(mut self, docs: &[&'static str]) -> Self {
+		self
+	}
+}
+
+impl PalletConstantMetadata<PortableForm> {
+	/// Get the documentation.
+	pub fn docs(&self) -> &[String] {
+		&self.docs
 	}
 }
 
