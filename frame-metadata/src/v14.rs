@@ -265,7 +265,7 @@ impl StorageEntryMetadata<MetaForm> {
 
 impl<T> StorageEntryMetadata<T>
 where
-	T: Form
+	T: Form,
 {
 	/// Get the documentation.
 	pub fn docs(&self) -> &[T::String] {
@@ -452,7 +452,7 @@ impl PalletConstantMetadata {
 
 impl PalletConstantMetadata<T>
 where
-	T: Form
+	T: Form,
 {
 	/// Get the documentation.
 	pub fn docs(&self) -> &[T::String] {
